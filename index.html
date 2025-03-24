@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circuit Shift Game</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Montserrat', Arial, sans-serif;
+            background: #000;
+        }
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: #00FFFF;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+        .loading-content {
+            text-align: center;
+        }
+        .loading-message {
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .progress-container {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            height: 5px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            width: 0;
+            height: 100%;
+            background-color: #00FFFF;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px #00FFFF;
+        }
+        #game-container {
+            width: 100%;
+            height: 100vh;
+        }
+        #menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+        #menu.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #menu button {
+            margin: 10px;
+            padding: 12px 30px;
+            font-size: 16px;
+            background-color: rgba(0, 255, 255, 0.1);
+            color: #00FFFF;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            min-width: 200px;
+        }
+        #menu button:hover {
+            background-color: rgba(0, 255, 255, 0.2);
+            border-color: #00FFFF;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+        .hidden {
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        #menu-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 15px;
+            background-color: rgba(0, 0, 0, 0.4);
+            color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            z-index: 100;
+            opacity: 0.5;
+        }
+        #menu-button:hover {
+            opacity: 1;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: #fff;
+        }
+        #current-circuit {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            color: rgba(0, 255, 255, 0.2);
+            opacity: 0.5;
+            z-index: 90;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        .circuit-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            justify-content: center;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+        }
+        .circuit-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: rgba(0, 255, 255, 0.7);
+            line-height: 1;
+        }
+        .circuit-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+            margin-top: 5px;
+        }
+        .ui-element {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+        .ui-element:hover {
+            opacity: 1;
+        }
+        /* For auto-hiding UI */
+        .auto-hide {
+            opacity: 0.3;
+            transition: opacity 0.5s ease;
+        }
+        body:hover .auto-hide {
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="loading-content">
+            <div class="loading-message">Entering Consciousness...</div>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+    <div id="game-container"></div>
+    <div id="menu" class="hidden">
+        <button id="continue-game">Continue</button>
+        <button id="new-game">New Game</button>
+        <button id="settings">Settings</button>
+        <button id="about">About</button>
+    </div>
+    <button id="menu-button" class="ui-element auto-hide">Menu</button>
+    <div id="current-circuit" class="ui-element">
+        <div class="circuit-indicator">
+            <div class="circuit-number">1</div>
+            <div class="circuit-label">Bio-Survival</div>
+        </div>
+    </div>
+    <div style="display: grid; grid-template-columns: auto 1fr; grid-gap: 5px;">
+        <span>WASD</span><span>Move</span>
+        <span>Space</span><span>Jump</span>
+        <span>Shift</span><span>Sprint</span>
+        <span>E</span><span>Interact</span>
+        <span>F</span><span>Circuit Action</span>
+        <span>1-8</span><span>Switch Circuit</span>
+        <span>ESC</span><span>Menu</span>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="BaseCircuit.js"></script>
+    <script src="Circuit1BioSurvival.js"></script>
+    <script src="Circuit2EmotionalTerritorial.js"></script>
+    <script src="Circuit3Symbolic.js"></script>
+    <script src="Circuit4SocialSexual.js"></script>
+    <script src="Circuit5HolisticIntuitive.js"></script>
+    <script src="Circuit6Neurogenetic.js"></script>
+    <script src="Circuit7QuantumNonlocal.js"></script>
+    <script src="Circuit8Void.js"></script>
+    <script src="PlayerController.js"></script>
+    <script src="InteractionManager.js"></script>
+    <script src="main.js"></script>
+</body>
+</html> 
