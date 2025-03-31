@@ -20,18 +20,20 @@ class Circuit8MetaVoid {
 
         this.instability = 0; // Represents the breakdown of the circuit
         this.instabilityRate = 0.01; // How quickly instability increases
+        this.isStopped = false; // Track if effects are stopped
 
     }
 
     init() {
         if (this.isInitialized) return;
 
-        console.log("Initializing Circuit 8: Meta-Void");
+        console.log("Initializing Circuit 8");
 
         this.createEnvironment();
         this.createGlitches();
         this.createDeconstruction();
         this.createLighting();
+        this.createStopButton();
         
         // Position the camera.
         if(this.camera) {
@@ -74,16 +76,72 @@ class Circuit8MetaVoid {
       this.group.add(ambientLight);
     }
 
+    createStopButton() {
+        // Create button container
+        const buttonContainer = document.createElement('div');
+        buttonContainer.id = 'circuit8-stop-button';
+        buttonContainer.style.position = 'fixed';
+        buttonContainer.style.top = '50%';
+        buttonContainer.style.left = '50%';
+        buttonContainer.style.transform = 'translate(-50%, -50%)';
+        buttonContainer.style.zIndex = '1000';
+        buttonContainer.style.opacity = '0.7';
+        buttonContainer.style.transition = 'opacity 0.3s ease';
+        buttonContainer.className = 'auto-hide';
+
+        // Create button
+        const button = document.createElement('button');
+        button.textContent = 'WOW!!!';
+        button.style.padding = '20px 40px';
+        button.style.fontSize = '24px';
+        button.style.fontWeight = 'bold';
+        button.style.color = '#ffffff';
+        button.style.backgroundColor = '#ff0000';
+        button.style.border = 'none';
+        button.style.borderRadius = '10px';
+        button.style.cursor = 'pointer';
+        button.style.boxShadow = '0 0 20px rgba(255, 0, 0, 0.5)';
+        button.style.transition = 'all 0.3s ease';
+
+        // Add hover effect
+        button.addEventListener('mouseover', () => {
+            button.style.transform = 'scale(1.1)';
+            button.style.boxShadow = '0 0 30px rgba(255, 0, 0, 0.7)';
+        });
+
+        button.addEventListener('mouseout', () => {
+            button.style.transform = 'scale(1)';
+            button.style.boxShadow = '0 0 20px rgba(255, 0, 0, 0.5)';
+        });
+
+        // Add click handler
+        button.addEventListener('click', () => {
+            this.isStopped = !this.isStopped;
+            button.textContent = this.isStopped ? 'BORING...' : 'WOW!!!';
+            button.style.backgroundColor = this.isStopped ? '#00ff00' : '#ff0000';
+            button.style.boxShadow = this.isStopped ? 
+                '0 0 20px rgba(0, 255, 0, 0.5)' : 
+                '0 0 20px rgba(255, 0, 0, 0.5)';
+        });
+
+        buttonContainer.appendChild(button);
+        document.body.appendChild(buttonContainer);
+    }
+
     update(delta) {
-      this.instability += this.instabilityRate * delta;
+        if (!this.isStopped) {
+            this.instability += this.instabilityRate * delta;
+        }
 
-      // Apply glitches based on instability
-      this.applyGlitches();
+        // Apply glitches based on instability
+        this.applyGlitches();
 
-      // Deconstruct elements based on instability (Placeholder)
+        // Deconstruct elements based on instability (Placeholder)
     }
 
     applyGlitches() {
+        if (this.isStopped) return;
+
         // Example glitches (implement these and more):
         if (Math.random() < this.instability * 0.1) {
             // Randomly change the color of an object
@@ -101,18 +159,13 @@ class Circuit8MetaVoid {
             }
         }
 
-        // if (Math.random() < this.instability * 0.01) {
-        //     // Invert controls (implement this carefully!)
-        //     // this.invertControls(); // Might be too disorienting
-        // }
-
         if (Math.random() < this.instability * 0.02) {
             // Change fog color
             this.scene.fog.color.set(new THREE.Color(Math.random(), Math.random(), Math.random()));
         }
-         if (Math.random() < this.instability * 0.02) {
+        if (Math.random() < this.instability * 0.02) {
             // Change sky color
-            this.objects.find(obj => obj.geometry instanceof THREE.SphereGeometry).material.color = new THREE.Color(Math.random(), Math.random(), Math.random());;
+            this.objects.find(obj => obj.geometry instanceof THREE.SphereGeometry).material.color = new THREE.Color(Math.random(), Math.random(), Math.random());
         }
     }
   
@@ -139,6 +192,6 @@ class Circuit8MetaVoid {
 
     handleInteraction(type, data) {
         // Interaction might have unexpected or no consequences
-        console.log("Interaction in Meta-Void.  Does it even matter anymore?");
+        console.log("Interaction in 8.  Does it even matter anymore?");
     }
 }
