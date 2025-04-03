@@ -14,7 +14,7 @@ class Circuit8MetaVoid {
 
         this.isInitialized = false;
 
-        this.name = 'Circuit 8: Meta-Void';
+        this.name = 'Circuit 8';
         this.description = 'Beyond Definition - The Unmanifest';
         this.circuitNumber = 8;
 
@@ -117,7 +117,7 @@ class Circuit8MetaVoid {
         // Add click handler
         button.addEventListener('click', () => {
             this.isStopped = !this.isStopped;
-            button.textContent = this.isStopped ? 'BORING...' : 'WOW!!!';
+            button.textContent = this.isStopped ? 'Paused' : 'WOW!!!';
             button.style.backgroundColor = this.isStopped ? '#00ff00' : '#ff0000';
             button.style.boxShadow = this.isStopped ? 
                 '0 0 20px rgba(0, 255, 0, 0.5)' : 
@@ -192,6 +192,6 @@ class Circuit8MetaVoid {
 
     handleInteraction(type, data) {
         // Interaction might have unexpected or no consequences
-        console.log("Interaction in 8.  Does it even matter anymore?");
+        console.log("Interaction in 8.");
     }
 }

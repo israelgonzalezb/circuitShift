@@ -48,65 +48,34 @@ let circuits = {
 function init() {
     console.log('Initializing game...');
     
-    // Create clock
-    clock = new THREE.Clock();
-    
     // Create scene
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000);
+    console.log('Scene created');
     
     // Create camera
-    camera = new THREE.PerspectiveCamera(
-        75, 
-        window.innerWidth / window.innerHeight, 
-        0.1, 
-        1000
-    );
-    camera.position.set(0, 5, 20);
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    console.log('Camera created with FOV:', camera.fov);
     
     // Create renderer
-    renderer = new THREE.WebGLRenderer({ 
-        antialias: true,
-        alpha: true
-    });
+    renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setClearColor(0x000000); // Set background color to black
     gameContainer.appendChild(renderer.domElement);
+    console.log('Renderer initialized');
     
-    // Add a basic floor for testing
-    const floorGeometry = new THREE.PlaneGeometry(100, 100);
-    const floorMaterial = new THREE.MeshStandardMaterial({
-        color: 0x333333,
-        roughness: 0.8,
-        metalness: 0.2
-    });
-    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-    floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
-    scene.add(floor);
+    // Create clock for timing
+    clock = new THREE.Clock();
     
-    // Add orbit controls for demo
+    // Create orbit controls
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.minDistance = 5;
-    controls.maxDistance = 50;
-    
-    // Add ambient light
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    scene.add(ambientLight);
-    
-    // Add directional light
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(5, 5, 5);
-    directionalLight.castShadow = true;
-    scene.add(directionalLight);
+    controls.enabled = false; // Start with orbit controls disabled
+    console.log('Orbit controls created');
     
     // Create player controller
     player = new PlayerController(camera, scene);
+    console.log('Player controller created');
     
     // Add event listeners
     window.addEventListener('resize', onWindowResize);
@@ -117,6 +86,10 @@ function init() {
     
     // Load circuits
     loadCircuits();
+    
+    // Start animation loop
+    animate();
+    console.log('Animation loop started');
 }
 
 // Initialize UI elements
@@ -286,55 +259,110 @@ function loadCircuits() {
     const forceLoadTimeout = setTimeout(() => {
         console.log('WARNING: Force completing loading after timeout');
         completeLoading();
-    }, 3000); // 3 second timeout (reduced from 5)
+    }, 3000);
     
     try {
         console.log('Creating circuit instances...');
-    // Create circuit instances
-    circuits[1] = new Circuit1BioSurvival(scene, camera);
-        console.log('Circuit 1 created successfully');
         
-    circuits[2] = new Circuit2EmotionalTerritorial(scene, camera);
-        console.log('Circuit 2 created successfully');
+        // Create circuit instances with error handling for each
+        try {
+            circuits[1] = new Circuit1BioSurvival(scene, camera);
+            console.log('Circuit 1 created successfully');
+        } catch (error) {
+            console.error('Error creating Circuit 1:', error);
+        }
         
-        circuits[3] = new Circuit3Symbolic(scene, camera);
-        console.log('Circuit 3 created successfully');
+        try {
+            circuits[2] = new Circuit2EmotionalTerritorial(scene, camera);
+            console.log('Circuit 2 created successfully');
+        } catch (error) {
+            console.error('Error creating Circuit 2:', error);
+        }
         
-        circuits[4] = new Circuit4SocialSexual(scene, camera);
-        console.log('Circuit 4 created successfully');
+        try {
+            circuits[3] = new Circuit3Symbolic(scene, camera);
+            console.log('Circuit 3 created successfully');
+        } catch (error) {
+            console.error('Error creating Circuit 3:', error);
+        }
         
-        circuits[5] = new Circuit5HolisticIntuitive(scene, camera);
-        console.log('Circuit 5 created successfully');
+        try {
+            circuits[4] = new Circuit4SocialSexual(scene, camera);
+            console.log('Circuit 4 created successfully');
+        } catch (error) {
+            console.error('Error creating Circuit 4:', error);
+        }
         
-        circuits[6] = new Circuit6Neurogenetic(scene, camera);
-        console.log('Circuit 6 created successfully');
+        try {
+            circuits[5] = new Circuit5HolisticIntuitive(scene, camera);
+            console.log('Circuit 5 created successfully');
+        } catch (error) {
+            console.error('Error creating Circuit 5:', error);
+        }
         
-        circuits[7] = new Circuit7QuantumNonlocal(scene, camera);
-        console.log('Circuit 7 created successfully');
+        try {
+            circuits[6] = new Circuit6Neurogenetic(scene, camera);
+            console.log('Circuit 6 created successfully');
+        } catch (error) {
+            console.error('Error creating Circuit 6:', error);
+        }
         
-        circuits[8] = new Circuit8MetaVoid(scene, camera);
-        console.log('Circuit 8 created successfully');
-    
-    // Create interaction manager
-    interactionManager = new InteractionManager(player, {
-        activeCircuit: circuits[currentCircuit]
-    });
+        try {
+            console.log('About to create Circuit 7...');
+            if (typeof Circuit7QuantumNonlocal === 'undefined') {
+                console.error('Circuit7QuantumNonlocal class is not defined!');
+            } else {
+                circuits[7] = new Circuit7QuantumNonlocal(scene, camera);
+                console.log('Circuit 7 created successfully');
+                console.log('Circuit 7 details:', {
+                    isInitialized: circuits[7].isInitialized,
+                    group: circuits[7].group,
+                    name: circuits[7].name,
+                    constructor: circuits[7].constructor.name
+                });
+            }
+        } catch (error) {
+            console.error('Error creating Circuit 7:', error);
+            console.error('Circuit7QuantumNonlocal availability:', typeof Circuit7QuantumNonlocal);
+        }
+        
+        try {
+            circuits[8] = new Circuit8MetaVoid(scene, camera);
+            console.log('Circuit 8 created successfully');
+        } catch (error) {
+            console.error('Error creating Circuit 8:', error);
+        }
+        
+        // Log the state of all circuits
+        console.log('Circuit initialization status:', {
+            'Circuit 1': circuits[1] ? 'Created' : 'Failed',
+            'Circuit 2': circuits[2] ? 'Created' : 'Failed',
+            'Circuit 3': circuits[3] ? 'Created' : 'Failed',
+            'Circuit 4': circuits[4] ? 'Created' : 'Failed',
+            'Circuit 5': circuits[5] ? 'Created' : 'Failed',
+            'Circuit 6': circuits[6] ? 'Created' : 'Failed',
+            'Circuit 7': circuits[7] ? 'Created' : 'Failed',
+            'Circuit 8': circuits[8] ? 'Created' : 'Failed'
+        });
+        
+        // Create interaction manager
+        interactionManager = new InteractionManager(player, {
+            activeCircuit: circuits[currentCircuit]
+        });
         console.log('Interaction manager created successfully');
-    
-    // Initialize first circuit
-    setCircuit(1);
-    
-    // Simulate loading progress
-    simulateLoading();
+        
+        // Initialize first circuit
+        setCircuit(1);
+        
+        // Simulate loading progress
+        simulateLoading();
         
         // Clear the force load timeout since we completed successfully
         clearTimeout(forceLoadTimeout);
+        
+        console.log('All circuits loaded successfully');
     } catch (error) {
-        console.error('Error loading circuits:', error);
-        // Force complete loading on error
-        completeLoading();
-        // Clear the timeout
-        clearTimeout(forceLoadTimeout);
+        console.error('Error in loadCircuits:', error);
     }
 }
 
@@ -370,10 +398,18 @@ function createTransitionEffect() {
 
 // Set active circuit
 function setCircuit(circuitNumber) {
-    if (currentCircuit === circuitNumber) return;
+    if (currentCircuit === circuitNumber) {
+        console.log(`Already in circuit ${circuitNumber}, skipping switch`);
+        return;
+    }
     
     console.log(`Switching from circuit ${currentCircuit} to circuit ${circuitNumber}`);
+    if (!circuits[circuitNumber]) {
+        console.error(`Circuit ${circuitNumber} is not available!`);
+        return;
+    }
     console.log(`Circuit ${circuitNumber} object:`, circuits[circuitNumber]);
+    console.log(`Circuit ${circuitNumber} isInitialized:`, circuits[circuitNumber].isInitialized);
     
     // Create transition effect
     const transition = createTransitionEffect();
@@ -438,18 +474,35 @@ function setCircuit(circuitNumber) {
     
     // Initialize and show new circuit
     if (circuits[currentCircuit]) {
-        if (!circuits[currentCircuit].isInitialized) {
-            console.log(`Initializing circuit ${currentCircuit}`);
-            circuits[currentCircuit].init();
-        }
-        console.log(`Showing circuit ${currentCircuit}: ${circuits[currentCircuit].name}`);
-        circuits[currentCircuit].group.visible = true;
+        console.log(`Current circuit group before init:`, circuits[currentCircuit].group);
+        console.log(`Current circuit group visibility before init:`, circuits[currentCircuit].group.visible);
+        console.log(`Current circuit isInitialized:`, circuits[currentCircuit].isInitialized);
         
-        // Update interaction manager
-        if (interactionManager) {
-            interactionManager.circuitManager = {
-                activeCircuit: circuits[currentCircuit]
-            };
+        try {
+            if (!circuits[currentCircuit].isInitialized) {
+                console.log(`Initializing circuit ${currentCircuit}`);
+                circuits[currentCircuit].init();
+                console.log(`Circuit ${currentCircuit} initialization complete`);
+                console.log(`Circuit ${currentCircuit} isInitialized after init:`, circuits[currentCircuit].isInitialized);
+            } else {
+                console.log(`Circuit ${currentCircuit} was already initialized`);
+            }
+            
+            console.log(`Showing circuit ${currentCircuit}: ${circuits[currentCircuit].name}`);
+            circuits[currentCircuit].group.visible = true;
+            
+            console.log(`Current circuit group after show:`, circuits[currentCircuit].group);
+            console.log(`Current circuit group visibility after show:`, circuits[currentCircuit].group.visible);
+            console.log(`Current circuit group children:`, circuits[currentCircuit].group.children);
+            
+            // Update interaction manager
+            if (interactionManager) {
+                interactionManager.circuitManager = {
+                    activeCircuit: circuits[currentCircuit]
+                };
+            }
+        } catch (error) {
+            console.error(`Error initializing circuit ${currentCircuit}:`, error);
         }
     } else {
         console.error(`Circuit ${currentCircuit} not found!`);
@@ -548,42 +601,28 @@ function completeLoading() {
 
 // Animation loop
 function animate() {
-    if (isPaused) {
-        console.log('Animation paused');
-        return;
-    }
-    
-    try {
     requestAnimationFrame(animate);
     
-    // Get delta time
     const delta = clock.getDelta();
     
-    if (isOrbitControlsActive) {
-        // Update orbit controls
+    // Update controls
+    if (controls.enabled) {
         controls.update();
-    } else {
-        // Update player controller
-        player.update(delta);
-        
-        // Update interaction manager
-        if (interactionManager) {
-            interactionManager.update(delta);
-        }
     }
     
-    // Update active circuit
-    if (circuits[currentCircuit]) {
-        if (currentCircuit === 6) {
-            console.debug("Updating Circuit 6...");
-        }
+    // Update player
+    if (player) {
+        player.update(delta);
+    }
+    
+    // Update current circuit
+    if (circuits[currentCircuit] && circuits[currentCircuit].update) {
         circuits[currentCircuit].update(delta);
     }
     
     // Render scene
-    renderer.render(scene, camera);
-    } catch (error) {
-        console.error('Error in animation loop:', error);
+    if (scene && camera) {
+        renderer.render(scene, camera);
     }
 }
 

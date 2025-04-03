@@ -98,16 +98,16 @@ class Circuit6Neurogenetic {
     }
     
     createDNAStrands() {
-        // Define strand colors that complement the nucleotide colors
-        const strandColors = [
-            new THREE.Color(0x00BFFF),   // Light Blue
-            new THREE.Color(0x32CD32),   // Lime Green
-            new THREE.Color(0xFFD700)    // Gold
-        ];
+        // Define nucleotide colors to match standard biological visualization
+        const nucleotideColors = {
+            'A': new THREE.Color(0xFF8C00), // Orange for Adenine
+            'T': new THREE.Color(0x808080), // Gray for Thymine
+            'G': new THREE.Color(0x00FF00), // Green for Guanine
+            'C': new THREE.Color(0x0000FF)  // Blue for Cytosine
+        };
 
         // Create nucleotide textures
         const nucleotides = ['T', 'G', 'C', 'A'];
-        const nucleotideColors = ['#FF0000', '#FFFF00', '#0000FF', '#00FF00']; // Red, Yellow, Blue, Green
         const nucleotideTextures = nucleotides.map((n, index) => {
             // Create a new canvas for each nucleotide
             const nucleotideCanvas = document.createElement('canvas');
@@ -117,7 +117,7 @@ class Circuit6Neurogenetic {
             
             nucleotideContext.fillStyle = 'rgba(0, 0, 0, 0)';
             nucleotideContext.fillRect(0, 0, nucleotideCanvas.width, nucleotideCanvas.height);
-            nucleotideContext.fillStyle = nucleotideColors[index];
+            nucleotideContext.fillStyle = nucleotideColors[n].getStyle();
             nucleotideContext.font = 'bold 48px Arial';
             nucleotideContext.textAlign = 'center';
             nucleotideContext.textBaseline = 'middle';
@@ -126,15 +126,6 @@ class Circuit6Neurogenetic {
         });
 
         for (let i = 0; i < this.numDNAStrands; i++) {
-            const strandMaterial = new THREE.MeshStandardMaterial({
-                color: strandColors[i % strandColors.length],
-                emissive: strandColors[i % strandColors.length],
-                emissiveIntensity: 0.7,
-                transparent: true,
-                opacity: 0.8,
-                side: THREE.DoubleSide,
-            });
-
             const points = [];
             const radius = 5 + Math.random() * 2; // Vary radius
             const height = this.dnaStrandLength;
@@ -151,9 +142,17 @@ class Circuit6Neurogenetic {
             }
             const curve = new THREE.CatmullRomCurve3(points);
 
-            // Create TWO tubes, offset slightly, for the double helix
-            const geometry1 = new THREE.TubeGeometry(curve, this.dnaStrandLength * 4, 0.5, 8, false);
-            const strand1 = new THREE.Mesh(geometry1, strandMaterial);
+            // Create TWO tubes for the sugar-phosphate backbone
+            const geometry1 = new THREE.TubeGeometry(curve, this.dnaStrandLength * 4, 0.3, 8, false);
+            const backboneMaterial = new THREE.MeshStandardMaterial({
+                color: 0x40E0D0, // Turquoise for sugar-phosphate backbone
+                emissive: 0x40E0D0,
+                emissiveIntensity: 0.2,
+                transparent: true,
+                opacity: 0.8,
+                side: THREE.DoubleSide,
+            });
+            const strand1 = new THREE.Mesh(geometry1, backboneMaterial);
 
             // Offset second strand
             const points2 = [];
@@ -166,53 +165,70 @@ class Circuit6Neurogenetic {
                 points2.push(new THREE.Vector3(x, y, z));
             }
             const curve2 = new THREE.CatmullRomCurve3(points2);
-            const geometry2 = new THREE.TubeGeometry(curve2, this.dnaStrandLength * 4, 0.5, 8, false);
-            const strand2 = new THREE.Mesh(geometry2, strandMaterial);
+            const geometry2 = new THREE.TubeGeometry(curve2, this.dnaStrandLength * 4, 0.3, 8, false);
+            const strand2 = new THREE.Mesh(geometry2, backboneMaterial);
 
-            // Add nucleotide labels
-            const nucleotideSpacing = height / (this.dnaStrandLength / 4); // Reduced frequency of labels
-            for (let j = 0; j < this.dnaStrandLength / 4; j++) { // Reduced number of labels
-                // First strand nucleotides
+            // Add base pairs as connecting bars
+            const nucleotideSpacing = height / (this.dnaStrandLength / 4);
+            for (let j = 0; j < this.dnaStrandLength / 4; j++) {
                 const t = j / (this.dnaStrandLength / 4);
                 const angle = t * Math.PI * 2 * twists;
-                const x = Math.cos(angle) * (radius + 2); // Increased distance from helix
+                const x1 = Math.cos(angle) * radius;
                 const y = t * height - height / 2;
-                const z = Math.sin(angle) * (radius + 2);
+                const z1 = Math.sin(angle) * radius;
+                
+                const angle2 = angle + Math.PI;
+                const x2 = Math.cos(angle2) * radius;
+                const z2 = Math.sin(angle2) * radius;
                 
                 const nucleotideIndex = Math.floor(Math.random() * nucleotides.length);
-                const nucleotideTexture = nucleotideTextures[nucleotideIndex];
-                const nucleotideMaterial = new THREE.MeshBasicMaterial({
-                    map: nucleotideTexture,
-                    transparent: true,
-                    opacity: 0.8,
-                    side: THREE.DoubleSide
-                });
-                
-                const nucleotideGeometry = new THREE.PlaneGeometry(1.5, 1.5); // Increased size
-                const nucleotide = new THREE.Mesh(nucleotideGeometry, nucleotideMaterial);
-                nucleotide.position.set(x, y, z);
-                nucleotide.lookAt(new THREE.Vector3(0, y, 0));
-                strand1.add(nucleotide);
+                const nucleotide = nucleotides[nucleotideIndex];
+                const complementaryIndex = (nucleotideIndex + 2) % 4;
+                const complementaryNucleotide = nucleotides[complementaryIndex];
 
-                // Second strand nucleotides (complementary)
-                const angle2 = t * Math.PI * 2 * twists + Math.PI;
-                const x2 = Math.cos(angle2) * (radius + 2);
-                const z2 = Math.sin(angle2) * (radius + 2);
+                // Create base pair connecting bar
+                const start = new THREE.Vector3(x1, y, z1);
+                const end = new THREE.Vector3(x2, y, z2);
+                const direction = end.clone().sub(start);
+                const basePairLength = direction.length();
                 
-                // Get complementary nucleotide
-                const complementaryIndex = (nucleotideIndex + 2) % 4; // T->A, G->C
-                const complementaryTexture = nucleotideTextures[complementaryIndex];
-                const complementaryMaterial = new THREE.MeshBasicMaterial({
-                    map: complementaryTexture,
+                const basePairGeometry = new THREE.CylinderGeometry(0.2, 0.2, basePairLength, 8);
+                const basePairMaterial = new THREE.MeshStandardMaterial({
+                    color: nucleotideColors[nucleotide],
+                    emissive: nucleotideColors[nucleotide],
+                    emissiveIntensity: 0.3,
                     transparent: true,
-                    opacity: 0.8,
-                    side: THREE.DoubleSide
+                    opacity: 0.9
                 });
                 
-                const complementaryNucleotide = new THREE.Mesh(nucleotideGeometry, complementaryMaterial);
-                complementaryNucleotide.position.set(x2, y, z2);
-                complementaryNucleotide.lookAt(new THREE.Vector3(0, y, 0));
-                strand2.add(complementaryNucleotide);
+                const basePair = new THREE.Mesh(basePairGeometry, basePairMaterial);
+                basePair.position.copy(start.clone().add(end).multiplyScalar(0.5));
+                basePair.lookAt(end);
+                basePair.rotateX(Math.PI / 2);
+
+                // Add small spheres at the ends of base pairs to represent nucleotides
+                const nucleotideSphereGeometry = new THREE.SphereGeometry(0.3, 8, 8);
+                const nucleotideSphere1 = new THREE.Mesh(nucleotideSphereGeometry, 
+                    new THREE.MeshStandardMaterial({
+                        color: nucleotideColors[nucleotide],
+                        emissive: nucleotideColors[nucleotide],
+                        emissiveIntensity: 0.3
+                    })
+                );
+                const nucleotideSphere2 = new THREE.Mesh(nucleotideSphereGeometry,
+                    new THREE.MeshStandardMaterial({
+                        color: nucleotideColors[complementaryNucleotide],
+                        emissive: nucleotideColors[complementaryNucleotide],
+                        emissiveIntensity: 0.3
+                    })
+                );
+                
+                nucleotideSphere1.position.copy(start);
+                nucleotideSphere2.position.copy(end);
+                
+                strand1.add(basePair);
+                strand1.add(nucleotideSphere1);
+                strand1.add(nucleotideSphere2);
             }
 
             // Group the two strands together
@@ -227,7 +243,7 @@ class Circuit6Neurogenetic {
                 0,
                 (Math.random() - 0.5) * 50
             );
-            dnaGroup.rotation.y = Math.random() * Math.PI * 2; // Random initial rotation
+            dnaGroup.rotation.y = Math.random() * Math.PI * 2;
 
             this.group.add(dnaGroup);
             this.dnaStrands.push(dnaGroup);
